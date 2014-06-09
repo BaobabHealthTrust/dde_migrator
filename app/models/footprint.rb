@@ -1,5 +1,5 @@
 require 'couchrest_model'
-class Footprint < CouchRest::Model::Base
+class Dde2Footprint < CouchRest::Model::Base
   
   use_database "person"
  

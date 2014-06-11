@@ -1,6 +1,6 @@
 class DdePersonNameCode < ActiveRecord::Base
   self.table_name = 'person_name_codes'
-  belongs_to :ddeperson, :foreign_key => :id
+  belongs_to :person,:class_name =>'DdePerson', :foreign_key => :id
 
   def self.create_name_code(person)
     found = self.find_by_person_id(person.id)
@@ -11,8 +11,8 @@ class DdePersonNameCode < ActiveRecord::Base
     
     if found.blank?
       self.create(:person_id => person.id,
-                :given_name_code => person.given_name.soundex,
-                :family_name_code => person.family_name.soundex)
+                  :given_name_code => person.given_name.soundex,
+                  :family_name_code => person.family_name.soundex)
     else
       found.given_name_code = person.given_name.soundex
       found.family_name_code = person.family_name.soundex
@@ -22,7 +22,7 @@ class DdePersonNameCode < ActiveRecord::Base
 
   def self.rebuild_person_name_codes
     DdePersonNameCode.delete_all
-    people = Person.find(:all)
+    people = DdePerson.find(:all)
     people.each {|person|
       DdePersonNameCode.create(
         :person_id => person.id,

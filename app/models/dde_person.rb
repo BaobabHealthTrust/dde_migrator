@@ -1,19 +1,16 @@
 class DdePerson < ActiveRecord::Base
   self.table_name = 'people'
-
    # dummy accessors
   attr_accessor :status, :status_message
 
-  has_one :national_patient_identifier
-  has_many :legacy_national_ids,:class_name => 'LegacyNationalIds', 
-           :foreign_key => 'person_id'
-  has_many :person_name_codes,:class_name => 'PersonNameCode',
-           :foreign_key => 'person_id'
+  has_one :national_patient_identifier ,:class_name => 'DdeNationalPatientIdentifier', :foreign_key => 'person_id'
+  has_many :legacy_national_ids,:class_name => 'DdeLegacyNationalIds', :foreign_key => 'person_id'
+  has_many :person_name_codes,:class_name => 'DdePersonNameCode', :foreign_key => 'person_id'
 
   belongs_to :creator,
-      :class_name => 'User'
+      :class_name => 'DdeUser'
   belongs_to :creator_site,
-      :class_name => 'Site'
+      :class_name => 'DdeSite'
 
   before_validation do |person| 
     set_npid
@@ -24,7 +21,6 @@ class DdePerson < ActiveRecord::Base
   self.after_save :save_npid
 
   validates_presence_of :national_patient_identifier, :data
-
 
   def data
     ActiveSupport::JSON.decode(read_attribute :data)

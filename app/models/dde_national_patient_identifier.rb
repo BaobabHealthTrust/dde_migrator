@@ -1,11 +1,10 @@
 class DdeNationalPatientIdentifier < ActiveRecord::Base
-  self.table_name = 'nationa_patient_identifiers'
-  default_scope where('voided = 0 AND decimal_num IS NOT NULL')
-  belongs_to :ddePerson
-  belongs_to :assigner,
-      :class_name => 'ddeUser'
-  belongs_to :assigner_site,
-      :class_name => 'ddeSite', :foreign_key => 'assigner_site_id'
+  self.table_name = 'national_patient_identifiers'
+  #default_scope where('voided = 0 AND decimal_num IS NOT NULL')
+  default_scope { where("decimal_num IS NOT NULL", voided: 0 ) }
+  belongs_to :person, :class_name => 'DdePerson'
+  belongs_to :assigner, :class_name => 'DdeUser'
+  belongs_to :assigner_site, :class_name => 'DdeSite', :foreign_key => 'assigner_site_id'
 
   validates_presence_of :value, :assigner_site_id
 

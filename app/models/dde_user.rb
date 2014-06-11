@@ -7,7 +7,7 @@ class DdeUser < ActiveRecord::Base
   attr_accessor :password_confirmation
   cattr_accessor :current_user
 
-  belongs_to :dde_site
+  belongs_to :site ,:class_name => 'DdeSite'
 
   delegate :name,
       :to        => :site,

@@ -1,25 +1,9 @@
-# == Schema Information
-#
-# Table name: sites
-#
-#  id          :integer          not null, primary key
-#  name        :string(255)
-#  annotations :string(255)
-#  created_at  :datetime
-#  updated_at  :datetime
-#  code        :string(255)      default("")
-#
+class DdeSite < ActiveRecord::Base
+  self.table_name = 'sites'
+  has_many :ddeusers
 
-class Site < ActiveRecord::Base
-
-  has_many :users
-
-  has_many :npid_auto_generations
-
-  has_many :national_patient_identifiers,
+  has_many :dde_national_patient_identifiers,
       :foreign_key => :assigner_site_id
-
-
 
   def available_npids
     if SITE_CONFIG[:mode] == 'master'

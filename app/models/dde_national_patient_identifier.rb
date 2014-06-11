@@ -1,32 +1,11 @@
-# == Schema Information
-#
-# Table name: national_patient_identifiers
-#
-#  id               :integer          not null, primary key
-#  value            :string(255)
-#  decimal_num      :integer
-#  person_id        :string(255)
-#  pulled           :boolean
-#  assigned_at      :datetime
-#  assigner_id      :integer
-#  assigner_site_id :integer
-#  created_at       :datetime
-#  updated_at       :datetime
-#  voided           :integer          default(0), not null
-#  void_reason      :string(255)
-#  voided_date      :datetime
-#
-
-# v3 Id: P + Version + Site Code + Sequential Number + Check Digit
-# v4 Id: base30(Random Number + Check Digit)
-#
-class NationalPatientIdentifier < ActiveRecord::Base
+class DdeNationalPatientIdentifier < ActiveRecord::Base
+  self.table_name = 'nationa_patient_identifiers'
   default_scope where('voided = 0 AND decimal_num IS NOT NULL')
-  belongs_to :person
+  belongs_to :ddePerson
   belongs_to :assigner,
-      :class_name => 'User'
+      :class_name => 'ddeUser'
   belongs_to :assigner_site,
-      :class_name => 'Site', :foreign_key => 'assigner_site_id'
+      :class_name => 'ddeSite', :foreign_key => 'assigner_site_id'
 
   validates_presence_of :value, :assigner_site_id
 
@@ -42,8 +21,6 @@ class NationalPatientIdentifier < ActiveRecord::Base
     end
   end
   
-  self.per_page = 20
-
   min = SITE_CONFIG[:base_npid].to_i
   max = min + SITE_CONFIG[:npid_range].to_i
   @@possible_ids ||= (min..max).map

@@ -7,10 +7,8 @@ class DdePerson < ActiveRecord::Base
   has_many :legacy_national_ids,:class_name => 'DdeLegacyNationalIds', :foreign_key => 'person_id'
   has_many :person_name_codes,:class_name => 'DdePersonNameCode', :foreign_key => 'person_id'
 
-  belongs_to :creator,
-      :class_name => 'DdeUser'
-  belongs_to :creator_site,
-      :class_name => 'DdeSite'
+  belongs_to :creator, :class_name => 'DdeUser'
+  belongs_to :creator_site, :class_name => 'DdeSite'
 
   before_validation do |person| 
     set_npid

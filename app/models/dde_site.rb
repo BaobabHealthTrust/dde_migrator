@@ -1,8 +1,8 @@
 class DdeSite < ActiveRecord::Base
   self.table_name = 'sites'
-  has_many :ddeusers
+  has_many :users, :class_name => 'DdeUser'
 
-  has_many :dde_national_patient_identifiers,
+  has_many :national_patient_identifiers, :class_name => 'DdeNationalPatientIdentifier',
       :foreign_key => :assigner_site_id
 
   def available_npids

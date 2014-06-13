@@ -8,6 +8,8 @@ end
 
 def build_dde2_person
  people = get_people
+ total_people = people.count
+ counter = 0
  people.each do |person|
  person_hash = Hash.new
  person_hash =   {
@@ -56,6 +58,7 @@ def build_dde2_person
 		       end
 		    
 		      @person = Person.new(person_hash) 
+          puts "Migrated >>>> #{ counter+1} of #{total_people} people"
 		      person_saved = @person.save!
 		      if person_saved 
 		          @national_id = Npid.find_by_national_id(@person.national_id)

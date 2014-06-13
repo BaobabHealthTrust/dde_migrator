@@ -30,8 +30,8 @@ def build_dde2_person
 										:names => { 
 		                            :given_name => person.data["names"]["given_name"],
 									 					    :family_name => person.data["names"]["family_name"],
-		                            :given_name_code => person.person_name_codes.first.given_name_code,
-									 					    :family_name_code => person.person_name_codes.first.family_name_code,
+		                            :given_name_code => (person.person_name_codes.first.given_name_code rescue nil),
+									 					    :family_name_code => (person.person_name_codes.first.family_name_code rescue nil),
 														  },
 
 										:birthdate => (person.data["birth_date"] rescue nil),
@@ -57,9 +57,12 @@ def build_dde2_person
 		            person_hash.merge!(:patient => {:identifiers => old_identifiers})
 		       end
 		    
-		      @person = Person.new(person_hash) 
-          puts "Migrated >>>> #{ counter+1} of #{total_people} people"
+		      @person = Person.new(person_hash)
+          
 		      person_saved = @person.save!
+          counter +=1  
+          puts "Migrated >>>> #{ counter} of #{total_people} people"
+
 		      if person_saved 
 		          @national_id = Npid.find_by_national_id(@person.national_id)
 		          unless @national_id.blank?

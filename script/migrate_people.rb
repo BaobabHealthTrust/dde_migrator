@@ -1,3 +1,4 @@
+LogProg = Logger.new(Rails.root.join("log","progress.log"))
 def get_people
     duplicate_ids =  DdeNationalPatientIdentifier.where("voided = 0 
       AND person_id IS NOT NULL").group(:value).having("count(value) > 1").map(&:value)
@@ -61,7 +62,9 @@ def build_dde2_person
           
 		      person_saved = @person.save!
           counter +=1  
-          puts "Migrated >>>> #{ counter} of #{total_people} people"
+          message = "Migrated >>>> #{ counter} of #{total_people} people"
+          LogProg.info message
+          puts message
 
 		      if person_saved 
 		          @national_id = Npid.find_by_national_id(@person.national_id)
@@ -73,6 +76,6 @@ def build_dde2_person
 		      end
  end
 end
-
+start = Time.now()
 build_dde2_person
-
+puts "Started at: #{start.strftime("%Y-%m-%d %H:%M:%S")} ########## finished at:#{Time.now().strftime("%Y-%m-%d %H:%M:%S")}"

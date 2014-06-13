@@ -40,7 +40,7 @@ class Site < CouchRest::Model::Base
   def self.current_code
 
     if CONFIG["sitecode"].blank?
-       settings = YAML.load_file(Rails.root.join('config', 'couchdb.yml'))[Rails.env]
+       settings = YAML.load_file(Rails.root.join('config', 'couchdb.yml'))[Rails.env] rescue nil
     else
        settings = CONFIG
     end

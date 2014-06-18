@@ -33,7 +33,7 @@ class Npid < CouchRest::Model::Base
                   emit(doc['_id'], 1);
                 }
               }"   
-        view :by__national_id,
+        view :by_national_id,
             :map => "function(doc) {
                 if ((doc['type'] == 'npid') && (doc['_national_id'] != null)) {
                   emit(doc['_national_id'], 1);
@@ -50,7 +50,7 @@ class Npid < CouchRest::Model::Base
         # "test" environments only and not to be used in "production" mode.
         
         view :by__id
-        view :by__national_id
+        view :by_national_id
         
     end
   end

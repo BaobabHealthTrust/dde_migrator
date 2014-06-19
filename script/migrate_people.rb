@@ -1,10 +1,6 @@
 LogProg = Logger.new(Rails.root.join("log","progress.log"))
 def get_people
-    duplicate_ids =  DdeNationalPatientIdentifier.where("voided = 0 
-      AND person_id IS NOT NULL").group(:value).having("count(value) > 1").map(&:value)
-
-    duplicate_ids = ['0'] if duplicate_ids.blank?
-    people =  DdePerson.joins(:national_patient_identifier).where("value NOT IN(?)",duplicate_ids)
+    people =  DdePerson.all
 end
 
 def build_dde2_person
@@ -57,9 +53,8 @@ def build_dde2_person
 		             end 
 		            person_hash.merge!(:patient => {:identifiers => old_identifiers})
 		       end
-		    
+		     
 		      @person = Person.new(person_hash)
-          
 		      person_saved = @person.save!
           counter +=1  
           message = "Migrated >>>> #{ counter} of #{total_people} people"
@@ -67,7 +62,7 @@ def build_dde2_person
           puts message
 
 		      if person_saved 
-		          @national_id = Npid.find_by_national_id(@person.national_id)
+		          @national_id = Npid.find_by__national_id(@person.national_id)
 		          unless @national_id.blank?
 		            @national_id.assigned = true
 		            @national_id.site_code = @person.assigned_site

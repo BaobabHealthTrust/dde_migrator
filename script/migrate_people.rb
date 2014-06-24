@@ -1,12 +1,21 @@
 LogProg = Logger.new(Rails.root.join("log","progress.log"))
+
 def get_people
-    people =  DdePerson.all
+   DdePerson.all
 end
 
-def build_dde2_person
+def get_footprints
+   DdeMasterFootprint.all
+end
+
+def migrate_people
  people = get_people
  total_people = people.count
  counter = 0
+ message = "Migrating people"
+ LogProg.info message
+ puts message
+
  people.each do |person|
  person_hash = Hash.new
  person_hash =   {
@@ -71,6 +80,35 @@ def build_dde2_person
 		      end
  end
 end
+
+def migrate_footprints
+ footprints = get_footprints
+ total_footprints = footprints.count
+ counter = 0
+ message = "Migrating footprints"
+ LogProg.info message
+ puts message
+ footprints.each do |footprint|
+   site_code = DdeSite.find(footprint.site_id).code
+   
+   @dde_footprint = Footprint.new(:npid => footprint.value,
+																 :application =>  footprint.application_name,
+																 :site_code => site_code,
+														     :created_at => footprint.interaction_datetime,
+														     :updated_at => footprint.interaction_datetime)
+
+   dde_person = @dde_footprint.save!
+
+   counter +=1  
+   message = "Migrated >>>> #{counter} of #{total_footprints} footprints"
+   LogProg.info message
+   puts message
+								 
+   
+ end 
+end
+
 start = Time.now()
-build_dde2_person
+#migrate_people
+migrate_footprints
 puts "Started at: #{start.strftime("%Y-%m-%d %H:%M:%S")} ########## finished at:#{Time.now().strftime("%Y-%m-%d %H:%M:%S")}"

@@ -109,6 +109,6 @@ def migrate_footprints
 end
 
 start = Time.now()
-#migrate_people
+migrate_people
 migrate_footprints
 puts "Started at: #{start.strftime("%Y-%m-%d %H:%M:%S")} ########## finished at:#{Time.now().strftime("%Y-%m-%d %H:%M:%S")}"

@@ -1,14 +1,14 @@
 require 'couchrest_model'
-class Dde2Footprint < CouchRest::Model::Base
+class Footprint < CouchRest::Model::Base
   
   use_database "person"
- 
+
   property :npid, String
   property :application, String
   property :site_code, String
-  
-  timestamps!
-
+  property :created_at, Time
+  property :updated_at, Time
+ 
   design do
     view :by__id
 

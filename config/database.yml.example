@@ -16,8 +16,16 @@ development:
 
 integration:
   adapter: mysql2
-  database: dde_integration
+  database: dde_master
   username: root
-  password: root
-  host: 192.168.15.5
+  password: p@ssword
+  host: localhost
+  pool: 500
+
+originalmaster:
+  adapter: mysql2
+  database: dde_master
+  username: root
+  password: p@ssword
+  host: localhost
   pool: 500

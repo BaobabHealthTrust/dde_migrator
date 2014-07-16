@@ -1,5 +1,9 @@
 LogProg = Logger.new(Rails.root.join("log","progress.log"))
 
+def get_national_ids
+   DdeNationalPatientIdentifier.all
+end
+
 def get_people
    DdePerson.all
 end
@@ -107,6 +111,35 @@ def migrate_footprints
    
  end 
 end
+
+def update_national_ids
+ nationalids = get_national_ids
+ total_national_ids = nationalids.count
+ counter = 0
+ message = "Updating national ids"
+ LogProg.info message
+ puts message
+ nationalids.each do |national_id|
+   site_code = DdeSite.find(footprint.site_id).code
+   
+   @dde_footprint = Footprint.new(:npid => footprint.value,
+																 :application =>  footprint.application_name,
+																 :site_code => site_code,
+														     :created_at => footprint.interaction_datetime,
+														     :updated_at => footprint.interaction_datetime)
+
+   dde_person = @dde_footprint.save!
+
+   counter +=1  
+   message = "Migrated >>>> #{counter} of #{total_footprints} footprints"
+   LogProg.info message
+   puts message
+								 
+   
+ end 
+end
+
+
 
 start = Time.now()
 migrate_people

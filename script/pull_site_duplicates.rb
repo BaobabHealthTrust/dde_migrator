@@ -18,6 +18,9 @@ def compare_values
        puts msg
      else
        puts "#{national_id.value} was created for #{national_id.assigner_site_id} and assigned to #{updated_national_id.assigner_site_id}"
+       (1..300).each do |n|
+        LogIds.info national_id.value
+       end
      end
    end
    

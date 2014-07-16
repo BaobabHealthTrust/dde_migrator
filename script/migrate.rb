@@ -71,7 +71,7 @@ def migrate_people
           puts message
 
 		      if person_saved 
-		          @national_id = Npid.find_by__national_id(@person.national_id)
+		          @national_id = Npid.find_by_national_id(@person.national_id)
 		          unless @national_id.blank?
 		            @national_id.assigned = true
 		            @national_id.site_code = @person.assigned_site

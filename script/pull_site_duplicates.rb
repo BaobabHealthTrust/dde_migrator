@@ -7,6 +7,8 @@ end
 
 def compare_values
  national_ids = get_original_ids
+ national_ids_total = get_original_ids.count
+ counter = 0
 
  national_ids.each do |national_id|
 	 updated_national_id = DdeNationalPatientIdentifier.find_by_value(national_id.value)
@@ -19,6 +21,8 @@ def compare_values
      else
        puts "#{national_id.value} was created for #{national_id.assigner_site_id} and assigned to #{updated_national_id.assigner_site_id}"
      end
+     counter += 1
+     puts "Compared #{counter} of #{national_ids_total}"
    end
    
  end

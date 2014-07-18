@@ -15,6 +15,8 @@ def compare_values
    unless updated_national_id.blank?
      if updated_national_id.assigner_site_id != national_id.assigner_site_id
        msg = "#{national_id.value} was created for #{national_id.assigner_site_id} but assigned to #{updated_national_id.assigner_site_id}"
+       updated_national_id.assigner_site_id = 999
+       updated_national_id.save!
        LogProg.info msg
        LogIds.info national_id.value
        puts msg

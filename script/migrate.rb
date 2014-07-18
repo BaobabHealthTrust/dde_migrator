@@ -4,6 +4,10 @@ def get_national_ids
    DdeNationalPatientIdentifier.all
 end
 
+def get_sites
+   DdeSite.where("id > 1")
+end
+
 def get_people
    DdePerson.all
 end
@@ -120,28 +124,63 @@ def update_national_ids
  LogProg.info message
  puts message
  nationalids.each do |national_id|
-   site_code = DdeSite.find(footprint.site_id).code
-   
-   @dde_footprint = Footprint.new(:npid => footprint.value,
-																 :application =>  footprint.application_name,
-																 :site_code => site_code,
-														     :created_at => footprint.interaction_datetime,
-														     :updated_at => footprint.interaction_datetime)
-
-   dde_person = @dde_footprint.save!
+   site_code = DdeSite.find(national_id.assigner_site_id).code
+    
+    regions = Hash["312" => "Centre", "XXL" => "Centre", "696"  => "Centre", "MPC" => "Centre", "NAH" => "Centre",
+                "526" => "Centre", "CHA"  => "Centre", "MTA" => "Centre", "KHC" => "Centre","A18" => "Centre",
+                "MIT" => "Centre", "KAN"  => "Centre", "MHC" => "Centre", "LIK" => "Centre","NHC" => "Centre",
+                "DLH" => "Centre" , "DOW" => "Centre", "STG" => "Centre", "CVR" => "Centre","EXC" => "Centre",
+                "DZA" => "Centre" , "NCH" => "Centre", "KAS" => "Centre", "MZC" => "North","QCH" => "South",
+                "MAL" => "South" , "MLB" => "South", "PMH" => "South","MJD" => "South", "BHC" => "South", "NDC" => "South"]
+    
+   @npid = Npid.find_by_national_id(national_id.value)
+   unless @npid.blank?
+     @npid.site_code = site_code
+  	 @npid.assigned = national_id.assigned_at.blank? ? false : true
+     @npid.assigned = true if regions[site_code] == "EXC"
+     @npid.region = regions[site_code] rescue ""
+     @npid.save! 
+   end
 
    counter +=1  
-   message = "Migrated >>>> #{counter} of #{total_footprints} footprints"
+   message = "Updated >>>> #{counter} of #{total_national_ids} national_ids"
    LogProg.info message
-   puts message
-								 
-   
+   puts message						 
  end 
 end
 
 
+def create_sites
+ sites = get_sites
+ total_sites = sites.count
+ counter = 0
+ regions = Hash["312" => "Centre", "XXL" => "Centre", "696"  => "Centre", "MPC" => "Centre", "NAH" => "Centre",
+                "526" => "Centre", "CHA"  => "Centre", "MTA" => "Centre", "KHC" => "Centre","A18" => "Centre",
+                "MIT" => "Centre", "KAN"  => "Centre", "MHC" => "Centre", "LIK" => "Centre","NHC" => "Centre",
+                "DLH" => "Centre" , "DOW" => "Centre", "STG" => "Centre", "CVR" => "Centre","EXC" => "Centre",
+                "DZA" => "Centre" , "NCH" => "Centre", "KAS" => "Centre", "MZC" => "North","QCH" => "South",
+                "MAL" => "South" , "MLB" => "South", "PMH" => "South","MJD" => "South", "BHC" => "South", "NDC" => "South"]
+ message = "Creating sites"
+ LogProg.info message
+ puts message
+ sites.each do |site|
+    @dde_site = Site.new 
+    @dde_site.site_code = site.code
+    @dde_site.name = site.name
+    @dde_site.description = site.annotations
+    @dde_site.region = regions[site.code] rescue ""
+    @dde_site.save!
+   	counter +=1  
+   	message = "Created >>>> #{counter} of #{total_sites} sites"
+  	 LogProg.info message
+   puts message						 
+ end 
+end
 
 start = Time.now()
+create_sites
 migrate_people
 migrate_footprints
+update_national_ids
+
 puts "Started at: #{start.strftime("%Y-%m-%d %H:%M:%S")} ########## finished at:#{Time.now().strftime("%Y-%m-%d %H:%M:%S")}"

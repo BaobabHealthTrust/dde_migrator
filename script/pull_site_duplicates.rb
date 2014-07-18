@@ -1,5 +1,5 @@
-LogProg = Logger.new(Rails.root.join("log","compared_id_progress.log"))
-LogIds =  Logger.new(Rails.root.join("log","duplicate_ids.log"))
+LogProg = Logger.new(Rails.root.join("log","compared_id_progress.txt"))
+LogIds =  Logger.new(Rails.root.join("log","duplicate_ids.txt"))
 
 def get_original_ids
   DdeNationalPatientIdentifierOriginal.all
@@ -18,9 +18,6 @@ def compare_values
        puts msg
      else
        puts "#{national_id.value} was created for #{national_id.assigner_site_id} and assigned to #{updated_national_id.assigner_site_id}"
-       (1..300).each do |n|
-        LogIds.info national_id.value
-       end
      end
    end
    

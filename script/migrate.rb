@@ -25,10 +25,11 @@ def migrate_people
  puts message
 
  people.each do |person|
+ next if person.national_patient_identifier.value.blank?
  person_hash = Hash.new
  person_hash =   {
-				  				 :national_id => person.national_patient_identifier.value,
-									 :assigned_site =>  person.national_patient_identifier.assigner_site.code,
+				  				 :national_id => (person.national_patient_identifier.value),
+									 :assigned_site =>  (person.national_patient_identifier.assigner_site.code rescue "998"),
 									 :patient_assigned => true,
 									 :person_attributes => { 
 		                                       :citizenship => (person.data["attributes"]["citizenship"] rescue nil),
@@ -39,11 +40,11 @@ def migrate_people
 																					 :race => (person.data["attributes"]["race"] rescue nil),
 														              },
 
-										:gender => person.data["gender"],
+										:gender => (person.data["gender"] rescue ""),
 
 										:names => { 
-		                            :given_name => person.data["names"]["given_name"],
-									 					    :family_name => person.data["names"]["family_name"],
+		                            :given_name => (person.data["names"]["given_name"] rescue ""),
+									 					    :family_name => (person.data["names"]["family_name"] rescue ""),
 		                            :given_name_code => (person.person_name_codes.first.given_name_code rescue nil),
 									 					    :family_name_code => (person.person_name_codes.first.family_name_code rescue nil),
 														  },
@@ -148,7 +149,6 @@ def update_national_ids
    puts message						 
  end 
 end
-
 
 def create_sites
  sites = get_sites

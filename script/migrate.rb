@@ -125,14 +125,17 @@ def update_national_ids
  LogProg.info message
  puts message
  nationalids.each do |national_id|
-   site_code = DdeSite.find(national_id.assigner_site_id).code
+   site_code = DdeSite.find(national_id.assigner_site_id).code rescue nil
+   site_code = "999" if national_id.assigner_site_id == "999"
+   site_code = "998" if national_id.assigner_site_id == "998"
     
     regions = Hash["312" => "Centre", "XXL" => "Centre", "696"  => "Centre", "MPC" => "Centre", "NAH" => "Centre",
                 "526" => "Centre", "CHA"  => "Centre", "MTA" => "Centre", "KHC" => "Centre","A18" => "Centre",
                 "MIT" => "Centre", "KAN"  => "Centre", "MHC" => "Centre", "LIK" => "Centre","NHC" => "Centre",
                 "DLH" => "Centre" , "DOW" => "Centre", "STG" => "Centre", "CVR" => "Centre","EXC" => "Centre",
                 "DZA" => "Centre" , "NCH" => "Centre", "KAS" => "Centre", "MZC" => "North","QCH" => "South",
-                "MAL" => "South" , "MLB" => "South", "PMH" => "South","MJD" => "South", "BHC" => "South", "NDC" => "South"]
+                "MAL" => "South" , "MLB" => "South", "PMH" => "South","MJD" => "South", "BHC" => "South", "NDC" => "South",
+								"999" => "999", "998" => "998"]
     
    @npid = Npid.find_by_national_id(national_id.value)
    unless @npid.blank?
@@ -178,9 +181,9 @@ def create_sites
 end
 
 start = Time.now()
-create_sites
-migrate_people
-migrate_footprints
-#update_national_ids
+#create_sites
+#migrate_people
+#migrate_footprints
+update_national_ids
 
 puts "Started at: #{start.strftime("%Y-%m-%d %H:%M:%S")} ########## finished at:#{Time.now().strftime("%Y-%m-%d %H:%M:%S")}"

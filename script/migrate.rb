@@ -79,14 +79,14 @@ def migrate_people
           LogProg.info message
           puts message
 
-		      if person_saved 
-		          @national_id = Npid.find_by_national_id(@person.national_id)
-		          unless @national_id.blank?
-		            @national_id.assigned = true
-		            @national_id.site_code = @person.assigned_site
-		            @national_id.save!
-		          end
-		      end
+		      #if person_saved 
+		      #    @national_id = Npid.find_by_national_id(@person.national_id)
+		      #    unless @national_id.blank?
+		      #      @national_id.assigned = true
+		      #      @national_id.site_code = @person.assigned_site
+		      #      @national_id.save!
+		      #    end
+		      #end
  end
 end
 
@@ -181,6 +181,6 @@ start = Time.now()
 create_sites
 migrate_people
 migrate_footprints
-update_national_ids
+#update_national_ids
 
 puts "Started at: #{start.strftime("%Y-%m-%d %H:%M:%S")} ########## finished at:#{Time.now().strftime("%Y-%m-%d %H:%M:%S")}"

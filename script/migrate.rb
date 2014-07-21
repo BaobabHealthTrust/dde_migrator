@@ -84,7 +84,7 @@ def migrate_people
           message = "Wrote >>>> #{ counter} of #{total_people} people"
           LogProg.info message
           puts message
-          if counter = 300000
+          if counter == 300000
             File.open(Rails.root.join("docs",file_name), 'a') { |file| file.write(' ] }') }
             counter = 0
           	file_name = "#{rand(10000)}.txt"

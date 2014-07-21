@@ -76,7 +76,7 @@ def migrate_people
 		       end
 		     
 		     
-          File.open(Rails.root.join("docs","people.txt"), 'a') do |file| 
+          File.open(Rails.root.join("docs",file_name), 'a') do |file| 
                file.write(person_hash.to_json)
                file.write(" , ") if counter < 299999
           end

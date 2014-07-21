@@ -9,7 +9,7 @@ def get_sites
 end
 
 def get_people
-   DdePerson.limit(10)
+   DdePerson.all
 end
 
 def get_footprints
@@ -24,7 +24,7 @@ def migrate_people
  LogProg.info message
  puts message
   
- file_name = "people.txt"
+ file_name = "#{rand(10000)}.txt"
  File.open(Rails.root.join("docs",file_name), 'a') { |file| file.write('{"docs":[') }
   
  people.each do |person|
@@ -87,7 +87,7 @@ def migrate_people
           if counter = 300000
             File.open(Rails.root.join("docs",file_name), 'a') { |file| file.write(' ] }') }
             counter = 0
-          	file_name = "people1.txt"
+          	file_name = "#{rand(10000)}.txt"
          	  File.open(Rails.root.join("docs",file_name), 'a') { |file| file.write('{"docs":[') }
           end
 		      

@@ -24,8 +24,8 @@ def migrate_people
  LogProg.info message
  puts message
   
-
- File.open(Rails.root.join("docs","people.txt"), 'a') { |file| file.write('{"docs":[') }
+ file_name = "people.txt"
+ File.open(Rails.root.join("docs",file_name), 'a') { |file| file.write('{"docs":[') }
   
  people.each do |person|
  next if person.national_patient_identifier.value.blank?
@@ -78,25 +78,21 @@ def migrate_people
 		     
           File.open(Rails.root.join("docs","people.txt"), 'a') do |file| 
                file.write(person_hash.to_json)
-               file.write(" , ") if counter < 9
+               file.write(" , ") if counter < 299999
           end
-
-          puts person_hash.to_json
           counter +=1  
-          #message = "Migrated >>>> #{ counter} of #{total_people} people"
-          #LogProg.info message
-          #puts message
-
-		      #if person_saved 
-		      #    @national_id = Npid.find_by_national_id(@person.national_id)
-		      #    unless @national_id.blank?
-		      #      @national_id.assigned = true
-		      #      @national_id.site_code = @person.assigned_site
-		      #      @national_id.save!
-		      #    end
-		      #end
+          message = "Wrote >>>> #{ counter} of #{total_people} people"
+          LogProg.info message
+          puts message
+          if counter = 300000
+            File.open(Rails.root.join("docs",file_name), 'a') { |file| file.write(' ] }') }
+            counter = 0
+          	file_name = "people1.txt"
+         	  File.open(Rails.root.join("docs",file_name), 'a') { |file| file.write('{"docs":[') }
+          end
+		      
  end
-  File.open(Rails.root.join("docs","people.txt"), 'a') { |file| file.write(' ] }') }
+  File.open(Rails.root.join("docs",file_name), 'a') { |file| file.write(' ] }') }
 end
 
 def migrate_footprints

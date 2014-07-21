@@ -9,7 +9,7 @@ def get_sites
 end
 
 def get_people
-   DdePerson.all
+   DdePerson.limit(10)
 end
 
 def get_footprints
@@ -23,12 +23,15 @@ def migrate_people
  message = "Migrating people"
  LogProg.info message
  puts message
+  
 
+ File.open(Rails.root.join("docs","people.txt"), 'a') { |file| file.write('{"docs":[') }
+  
  people.each do |person|
  next if person.national_patient_identifier.value.blank?
  person_hash = Hash.new
  person_hash =   {
-				  				 :national_id => (person.national_patient_identifier.value),
+				  				 :_id => (person.national_patient_identifier.value),
 									 :assigned_site =>  (person.national_patient_identifier.assigner_site.code rescue "998"),
 									 :patient_assigned => true,
 									 :person_attributes => { 
@@ -49,7 +52,7 @@ def migrate_people
 									 					    :family_name_code => (person.person_name_codes.first.family_name_code rescue nil),
 														  },
 
-										:birthdate => (person.data["birth_date"] rescue nil),
+										:birthdate => (person.data["birthdate"] rescue nil),
 										:birthdate_estimated => (person.data["birthdate_estimated"] rescue nil),
 
 										:addresses => {
@@ -72,12 +75,17 @@ def migrate_people
 		            person_hash.merge!(:patient => {:identifiers => old_identifiers})
 		       end
 		     
-		      @person = Person.new(person_hash)
-		      person_saved = @person.save!
+		     
+          File.open(Rails.root.join("docs","people.txt"), 'a') do |file| 
+               file.write(person_hash.to_json)
+               file.write(" , ") if counter < 9
+          end
+
+          puts person_hash.to_json
           counter +=1  
-          message = "Migrated >>>> #{ counter} of #{total_people} people"
-          LogProg.info message
-          puts message
+          #message = "Migrated >>>> #{ counter} of #{total_people} people"
+          #LogProg.info message
+          #puts message
 
 		      #if person_saved 
 		      #    @national_id = Npid.find_by_national_id(@person.national_id)
@@ -88,6 +96,7 @@ def migrate_people
 		      #    end
 		      #end
  end
+  File.open(Rails.root.join("docs","people.txt"), 'a') { |file| file.write(' ] }') }
 end
 
 def migrate_footprints
@@ -176,14 +185,14 @@ def create_sites
    	counter +=1  
    	message = "Created >>>> #{counter} of #{total_sites} sites"
   	 LogProg.info message
-   puts message						 
+     puts message						 
  end 
 end
 
 start = Time.now()
 #create_sites
-#migrate_people
+migrate_people
 #migrate_footprints
-update_national_ids
+#update_national_ids
 
 puts "Started at: #{start.strftime("%Y-%m-%d %H:%M:%S")} ########## finished at:#{Time.now().strftime("%Y-%m-%d %H:%M:%S")}"

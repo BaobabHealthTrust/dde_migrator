@@ -4,6 +4,7 @@ class DdePerson < ActiveRecord::Base
   attr_accessor :status, :status_message
 
   has_one :national_patient_identifier ,:class_name => 'DdeNationalPatientIdentifier', :foreign_key => 'person_id'
+  has_one :person_data ,:class_name => 'PersonData', :foreign_key => 'person_id'
   has_many :legacy_national_ids,:class_name => 'DdeLegacyNationalIds', :foreign_key => 'person_id'
   has_many :person_name_codes,:class_name => 'DdePersonNameCode', :foreign_key => 'person_id'
 

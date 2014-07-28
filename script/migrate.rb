@@ -185,10 +185,55 @@ def create_sites
  end 
 end
 
+def extract_person_data
+ people = get_people
+ total_people = people.count
+ counter = 0
+ message = "Extracting person addresses and attributes"
+ LogProg.info message
+ puts message
+   
+ people.each do |person|
+ next if person.national_patient_identifier.value.blank?
+ person_data = PersonData.new
+ person_data.person_id = person.id
+ person_data.citizenship =  person.data["attributes"]["citizenship"] rescue nil
+ person_data.occupation = person.data["attributes"]["occupation"] rescue nil
+ person_data.home_phone_number = person.data["attributes"]["home_phone_number"] rescue nil
+ person_data.cell_phone_number = person.data["attributes"]["cell_phone_number"] rescue nil
+ person_data.office_phone_number = person.data["attributes"]["office_phone_number"] rescue nil
+ person_data.race = person.data["attributes"]["race"] rescue nil
+
+ person_data.current_village = person.data["addresses"]["city_village"] rescue nil
+ person_data.current_ta = person.data["addresses"]["address1"] rescue nil
+ person_data.current_district = person.data["addresses"]["state_province"] rescue nil
+ person_data.home_village = person.data["addresses"]["neighborhood_cell"] rescue nil
+ person_data.home_ta = person.data["addresses"]["county_district"] rescue nil
+ person_data.home_district = person.data["addresses"]["address2"] rescue nil
+ 
+		if person.legacy_national_ids
+				 old_identifiers = []
+				 person.legacy_national_ids.each do |legacy_id|
+				   old_identifiers << legacy_id.value
+				 end 
+				person_data.legacy_ids = old_identifiers.join(',') 
+		end
+		     	     
+  person_data.save!
+  counter +=1  
+  message = "Extracted >>>> #{counter} of #{total_people} people"
+  LogProg.info message
+  puts message	        
+ end
+end
+
+
+
 start = Time.now()
 #create_sites
-migrate_people
+#migrate_people
 #migrate_footprints
 #update_national_ids
+extract_person_data
 
 puts "Started at: #{start.strftime("%Y-%m-%d %H:%M:%S")} ########## finished at:#{Time.now().strftime("%Y-%m-%d %H:%M:%S")}"

@@ -1,4 +1,7 @@
-CREATE TABLE `person_data` (
+
+DROP TABLE IF EXISTS `person_data` ;
+
+CREATE TABLE IF NOT EXISTS `person_data` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `person_id` int(11) NOT NULL,
   `citizenship` varchar(40) DEFAULT NULL,

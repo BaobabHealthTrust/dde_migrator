@@ -17,6 +17,7 @@ class Npid < CouchRest::Model::Base
   
   timestamps!
   
+  # Can be replaced with "Npid.by_site_code.include_docs.keys([SITE_CODE]).page(PAGE).per(PAGE_SIZE).rows"
   def self.where(params = {})
     result = []
     limit = 0
@@ -37,6 +38,8 @@ class Npid < CouchRest::Model::Base
         
         ((params[:start].to_i)..(npids.length - 1)).each do |i|
            
+          npids[i]["value"] = Npid.find_by__id(npids[i].id) rescue {}
+          
           person = Person.find_by__id(npids[i]["value"]["national_id"]) rescue nil
           
           result << {
@@ -75,6 +78,8 @@ class Npid < CouchRest::Model::Base
         
         ((params[:start].to_i)..(params[:start].to_i + params[:limit].to_i - 1)).each do |i|
            
+          npids[i]["value"] = Npid.find_by__id(npids[i].id) rescue {}
+          
           person = Person.find_by__id(npids[i]["value"]["national_id"]) rescue nil
           
           result << {
@@ -102,6 +107,8 @@ class Npid < CouchRest::Model::Base
         view :by__id
         view :by_national_id
         view :by_site_code
+        view :by_site_code_and_assigned
+        view :by_assigned
     
         # Site views
         view :unassigned_to_site,

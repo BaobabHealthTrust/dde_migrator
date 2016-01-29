@@ -60,6 +60,8 @@ def migrate_people
 		      }
 
 		       
+		       
+		      Person.create(person_hash)
 		     
           File.open(Rails.root.join("docs",file_name), 'a') do |file| 
                file.write(person_hash.to_json)

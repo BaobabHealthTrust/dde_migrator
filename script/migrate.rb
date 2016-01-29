@@ -1,14 +1,12 @@
 LogProg = Logger.new(Rails.root.join("log","progress.log"))
 
 def get_national_ids
-   CvrNationalIdentifier.where('person_id is not null')
+   CvrPersonIdentifier.where('person_id is not null')
 end
-
 
 def get_people
    CvrPerson.all
 end
-
 
 def migrate_people
  people = get_people
@@ -24,9 +22,10 @@ def migrate_people
  people.each do |person|
  next if person.national_id.blank?
  person_hash = Hash.new
+ national_id = CvrPersonIdentifier.find_by_id(person.national_id)
  person_hash =   {
-				  				 :_id => (person.national_id),
-									 :assigned_site =>  (CvrNationalIdentifier.find_by_identifier(person.national_id).site_id.upcase),
+				  				 :_id => (national_id.identifier),
+									 :assigned_site =>  (national_id.site_id.upcase),
 									 :patient_assigned => true,
 									 :person_attributes => { 
 		                                       :citizenship => (""),
@@ -49,23 +48,19 @@ def migrate_people
 										:birthdate_estimated => (person.birthdate_estimated rescue nil),
 
 										:addresses => {
-																   :current_village => (person.city_village rescue nil),
-																   :current_ta => (person.address1 rescue nil),
+																   :current_village => (person.village rescue nil),
+																   :current_ta => (person.ta rescue nil),
 																   :current_district => (person.state_province rescue nil),
 																   :home_village => (person.neighborhood_cell rescue nil),
 																   :home_ta => (person.county_district rescue nil),
-																   :home_district => (person.address2 rescue nil)
+																   :home_district => ("")
 				                          }
 		         
 		      }
-
-		       
-		       
-		      Person.create(person_hash)
-		     
+ 
           File.open(Rails.root.join("docs",file_name), 'a') do |file| 
                file.write(person_hash.to_json)
-               file.write(" , ") if counter < 299999
+               file.write(" ,\n") if counter < 299999
           end
           counter +=1  
           message = "Wrote >>>> #{ counter} of #{total_people} people"
@@ -114,6 +109,7 @@ def update_national_ids
 end
 
 start = Time.now()
+migrate_people
 #create_sites
 #migrate_people
 #migrate_footprints

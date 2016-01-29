@@ -1,5 +1,5 @@
 
-class DdeUser < ActiveRecord::Base
+class CvrUser < ActiveRecord::Base
   self.table_name = 'users'
   validates :name, :password,:email, :presence => true
   validates_uniqueness_of :name, :email

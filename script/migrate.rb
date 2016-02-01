@@ -3,11 +3,7 @@ LogPersonMigrateSuccess = Logger.new(Rails.root.join("log","person_success.log")
 LogPersonMigrateFail = Logger.new(Rails.root.join("log","person_fail.log"))
 LogNpidMigrateSuccess = Logger.new(Rails.root.join("log","npid_success.log"))
 LogNpidSuccessFail = Logger.new(Rails.root.join("log","npid_fail.log"))
-
-personSuccessCounter = 0
-personFailCounter = 0
-npidSuccessCounter = 0
-npidFailCounter = 0
+LogNpidNotFound = Logger.new(Rails.root.join("log","npid_not_found.log"))
 
 def get_people
    CvrPerson.all
@@ -19,6 +15,12 @@ def self.migrate_people
  message = "Migrating people"
  LogProg.info message
  puts message
+ 
+ counter = 0
+ personSuccessCounter = 0
+ personFailCounter = 0
+ npidSuccessCounter = 0
+ npidFailCounter = 0
  
  regions = Hash["312" => "Centre", "XXL" => "Centre", "696"  => "Centre", "MPC" => "Centre", "NAH" => "Centre",
                 "526" => "Centre", "CHA"  => "Centre", "MTA" => "Centre", "KHC" => "Centre","A18" => "Centre",
@@ -35,7 +37,9 @@ def self.migrate_people
  
  national_id = CvrPersonIdentifier.find_by_id(person.national_id)
  personA = Person.find(national_id.identifier)
- next if personA.present?
+ 
+ if personA.blank?
+ 
  person_hash =   {
 				  				 :_id => (national_id.identifier),
 				  				 :national_id => (national_id.identifier),
@@ -77,51 +81,68 @@ def self.migrate_people
           
           if personC.present?
             personSuccessCounter += 1
-            message = "Wrote >>>> #{counter} of #{total_people} people"
+            message = "Read >>>> #{counter} of #{total_people} people"
          		LogProg.info message
             puts message
-            message = "Written,#{personA.first_name},#{personA.last_name},#{national_id.identifier}"
+            message = "Written,#{person.given_name},#{person.family_name},#{national_id.identifier}"
             LogPersonMigrateSuccess.info message
             puts message
-            
-            
+            counter +=1
             npid = Npid.by_national_id.key(national_id.identifier).first rescue nil
    
 					  if npid.present?
-						 if npid.assigned == false
-							  npid.site_code = national_id.site_id.upcase
-							  npid.assigned = national_id.person_id.blank? ? false : true
+						   if npid.assigned == false
+							   npid.site_code = national_id.site_id.upcase
+							   npid.assigned = national_id.person_id.blank? ? false : true
 								 npid.region = regions[site_code] rescue ""
 								 npid.save! 
-								 message = "Written,#{personA.first_name},#{personA.last_name},#{national_id.identifier}"
+								 message = "Updated NPID ,#{person.given_name},#{person.family_name},#{national_id.identifier}"
             		 LogNpidMigrateSuccess.info message
             		 npidSuccessCounter += 1
             		 puts message  
 							 else
-								 message = "#{@npid.national_id} already belongs to someone else"
+								 message = "Not Updated NPID #{npid.national_id}, It already belongs to someone else"
 								 LogNpidSuccessFail.info message
 								 puts message	
 								 npidFailCounter += 1  
 						 	 end
+						 else
+						     message = "Not found NPID #{npid.national_id}"
+								 LogNpidNotFound.info message
+								 puts message	
+								 npidFailCounter += 1   	 
 						 end
-          
           else
-          	message = "Not Written,#{personA.first_name},#{personA.last_name}, person with id: #{national_id.identifier} already exists"
+          	message = "Not Written,#{person.given_name},#{person.family_name}, person with id: #{national_id.identifier} already exists"
 	          LogPersonMigrateFail.info message
 	          puts message
 	          personFailCounter +=1
+	          counter +=1
+	          message = "Read >>>> #{counter} of #{total_people} people"
+         		LogProg.info message
+         		puts message
           end
-          
+         
+	else
+	  message = "Not Written,#{person.given_name},#{person.family_name}, person with id: #{national_id.identifier} already exists"
+    LogPersonMigrateFail.info message
+    puts message
+    personFailCounter +=1
+    counter +=1
+    message = "Read >>>> #{counter} of #{total_people} people"
+    LogProg.info message
+    puts message
 	end
+	end	
+	puts "People Migrated: #{personSuccessCounter}"
+	puts "People Not Migrated: #{personFailCounter}"
+	puts "NPID Updated: #{npidSuccessCounter}"
+	puts "NPID Not Updated #{npidFailCounter}"
 end
 
 start = Time.now()
 
 migrate_people
 
-puts "People Migrated: #{personSuccessCounter}"
-puts "People Not Migrated: #{personFailCounter}"
-puts "NPID Updated: #{npidSuccessCounter}"
-puts "NPID Not Updated #{npidFailCounter}"
-
-puts "Started at: #{start.strftime("%Y-%m-%d %H:%M:%S")} ########## finished at:#{Time.now().strftime("%Y-%m-%d %H:%M:%S")}"
+puts "Started at: #{start.strftime("%Y-%m-%d %H:%M:%S")}"
+puts "Finished at: #{Time.now().strftime("%Y-%m-%d %H:%M:%S")}"

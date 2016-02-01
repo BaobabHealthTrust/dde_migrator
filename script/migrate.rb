@@ -4,6 +4,7 @@ LogPersonMigrateFail = Logger.new(Rails.root.join("log","person_fail.log"))
 LogNpidMigrateSuccess = Logger.new(Rails.root.join("log","npid_success.log"))
 LogNpidSuccessFail = Logger.new(Rails.root.join("log","npid_fail.log"))
 LogNpidNotFound = Logger.new(Rails.root.join("log","npid_not_found.log"))
+LogNpidInvalid = Logger.new(Rails.root.join("log","npid_invalid.log"))
 
 def get_people
    CvrPerson.all
@@ -21,6 +22,7 @@ def self.migrate_people
  personFailCounter = 0
  npidSuccessCounter = 0
  npidFailCounter = 0
+ npidInvalid = 0
  
  regions = Hash["312" => "Centre", "XXL" => "Centre", "696"  => "Centre", "MPC" => "Centre", "NAH" => "Centre",
                 "526" => "Centre", "CHA"  => "Centre", "MTA" => "Centre", "KHC" => "Centre","A18" => "Centre",
@@ -33,19 +35,57 @@ def self.migrate_people
  people.each do |person|
  next if person.national_id.blank?
  
- person_hash = Hash.new
- 
  national_id = CvrPersonIdentifier.find_by_id(person.national_id)
+ 
+ to_decimal = NationalPatientId.to_decimal(person.national_id) rescue nil
+ if to_decimal.blank?
+    message = "Invalid ID #{person.national_id}"
+    LogNpidInvalid.info message
+    puts message
+    npidInvalid +=1
+    counter +=1
+    message = "Read >>>> #{counter} of #{total_people} people"
+    LogProg.info message
+    puts message
+    next
+ else
+    if NationalPatientId.valid?(to_decimal) == false
+     	message = "Invalid ID #{person.national_id}"
+    	LogNpidInvalid.info message
+		  puts message
+		  npidInvalid +=1
+		  counter +=1
+		  message = "Read >>>> #{counter} of #{total_people} people"
+		  LogProg.info message
+		  puts message
+		  next
+    end
+ end
+  
  personA = Person.find(national_id.identifier)
+ #### 
+ if personA.present?
+ 	personA.destroy
+ end
+ personA = Person.find(national_id.identifier) 
+ #### 
+ person_hash = Hash.new
  
  if personA.blank?
  
+ current_national_id = national_id.identifier
+ 
+ if current_national_id.length == 13 and current_national_id.first.upcase == "P"
+  current_national_id = Npid.by_site_code_and_assigned.keys([[national_id.site_id.upcase, false]]).first.id rescue national_id.identifier
+ end
+ 
  person_hash =   {
-				  				 :_id => (national_id.identifier),
-				  				 :national_id => (national_id.identifier),
+				  				 :_id => (current_national_id),
+				  				 :national_id => (current_national_id),
 									 :assigned_site =>  (national_id.site_id.upcase),
 									 :created_at => person.created_at,
 									 :patient_assigned => true,
+									 :patient => { :identifiers => [{"National id" => current_national_id}] },
 									 :person_attributes => { 
 		                                       :citizenship => (""),
 																					 :home_phone_number => (""),
@@ -59,8 +99,8 @@ def self.migrate_people
 										:names => { 
 		                            :given_name => (person.given_name rescue ""),
 									 					    :family_name => (person.family_name rescue ""),
-		                            :given_name_code => (person.given_name_code rescue nil),
-									 					    :family_name_code => (person.family_name_code rescue nil),
+		                            :given_name_code => (person.given_name_code rescue person.given_name.soundex),
+									 					    :family_name_code => (person.family_name_code rescue person.family_name.soundex),
 														  },
 
 										:birthdate => (person.birthdate rescue nil),
@@ -88,7 +128,7 @@ def self.migrate_people
             LogPersonMigrateSuccess.info message
             puts message
             counter +=1
-            npid = Npid.by_national_id.key(national_id.identifier).first rescue nil
+            npid = Npid.by_national_id.key(current_national_id).first rescue nil
    
 					  if npid.present?
 						   if npid.assigned == false
@@ -101,19 +141,19 @@ def self.migrate_people
             		 npidSuccessCounter += 1
             		 puts message  
 							 else
-								 message = "Not Updated NPID #{npid.national_id}, It already belongs to someone else"
+								 message = "Not Updated NPID #{current_national_id}, It already belongs to someone else"
 								 LogNpidSuccessFail.info message
 								 puts message	
 								 npidFailCounter += 1  
 						 	 end
 						 else
-						     message = "Not found NPID #{national_id.identifier}"
+						     message = "Not found NPID #{current_national_id}"
 								 LogNpidNotFound.info message
 								 puts message	
 								 npidFailCounter += 1   	 
 						 end
           else
-          	message = "Not Written,#{person.given_name},#{person.family_name}, person with id: #{national_id.identifier} already exists"
+          	message = "Not Written,#{person.given_name},#{person.family_name}, person with id: #{current_national_id} already exists"
 	          LogPersonMigrateFail.info message
 	          puts message
 	          personFailCounter +=1

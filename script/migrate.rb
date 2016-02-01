@@ -99,8 +99,8 @@ def self.migrate_people
 										:names => { 
 		                            :given_name => (person.given_name rescue ""),
 									 					    :family_name => (person.family_name rescue ""),
-		                            :given_name_code => (person.given_name_code rescue person.given_name.soundex),
-									 					    :family_name_code => (person.family_name_code rescue person.family_name.soundex),
+		                            :given_name_code => (person.given_name.soundex),
+									 					    :family_name_code => (person.family_name.soundex),
 														  },
 
 										:birthdate => (person.birthdate rescue nil),

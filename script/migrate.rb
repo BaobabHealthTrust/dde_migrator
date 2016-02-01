@@ -37,7 +37,7 @@ def self.migrate_people
  
  national_id = CvrPersonIdentifier.find_by_id(person.national_id)
  
- to_decimal = NationalPatientId.to_decimal(person.national_id) rescue nil
+ to_decimal = NationalPatientId.to_decimal(national_id.identifier) rescue nil
  if to_decimal.blank?
     message = "Invalid ID #{person.national_id}"
     LogNpidInvalid.info message

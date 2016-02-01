@@ -107,7 +107,7 @@ def self.migrate_people
 								 npidFailCounter += 1  
 						 	 end
 						 else
-						     message = "Not found NPID #{npid.national_id}"
+						     message = "Not found NPID #{national_id.identifier}"
 								 LogNpidNotFound.info message
 								 puts message	
 								 npidFailCounter += 1   	 

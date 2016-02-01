@@ -4,8 +4,6 @@ class Person < CouchRest::Model::Base
 
   use_database "person"
   
-  before_save :set_name_codes
-
   def national_id
     self['_id']
   end

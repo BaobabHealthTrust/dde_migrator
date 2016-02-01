@@ -1,14 +1,14 @@
 LogProg = Logger.new(Rails.root.join("log","progress.log"))
 
 def get_national_ids
-   CvrPersonIdentifier.where('person_id is not null')
+   CvrPersonIdentifier.where('person_id IS NOT NULL')
 end
 
 def get_people
    CvrPerson.all
 end
 
-def migrate_people
+def self.migrate_people
  people = get_people
  total_people = people.count
  counter = 0
@@ -21,11 +21,17 @@ def migrate_people
   
  people.each do |person|
  next if person.national_id.blank?
+ 
  person_hash = Hash.new
+ 
  national_id = CvrPersonIdentifier.find_by_id(person.national_id)
+ personA = Person.find(national_id.identifier)
+ next if personA.present?
  person_hash =   {
 				  				 :_id => (national_id.identifier),
+				  				 :national_id => (national_id.identifier),
 									 :assigned_site =>  (national_id.site_id.upcase),
+									 :created_at => person.created_at,
 									 :patient_assigned => true,
 									 :person_attributes => { 
 		                                       :citizenship => (""),
@@ -35,7 +41,7 @@ def migrate_people
 																					 :race => (""),
 														              },
 
-										:gender => (person.gender),
+										:gender => (person.gender.first rescue nil),
 
 										:names => { 
 		                            :given_name => (person.given_name rescue ""),
@@ -57,27 +63,24 @@ def migrate_people
 				                          }
 		         
 		      }
- 
-          File.open(Rails.root.join("docs",file_name), 'a') do |file| 
-               file.write(person_hash.to_json)
-               file.write(" ,\n") if counter < 299999
-          end
-          counter +=1  
-          message = "Wrote >>>> #{ counter} of #{total_people} people"
-          LogProg.info message
-          puts message
-          if counter == 300000
-            File.open(Rails.root.join("docs",file_name), 'a') { |file| file.write(' ] }') }
-            counter = 0
-          	file_name = "#{rand(10000)}.txt"
-         	  File.open(Rails.root.join("docs",file_name), 'a') { |file| file.write('{"docs":[') }
-          end
 		      
- end
-  File.open(Rails.root.join("docs",file_name), 'a') { |file| file.write(' ] }') }
+          personC = Person.create(person_hash)
+          
+          if personC.present?
+            counter += 1
+            message = "Wrote >>>> #{ counter} of #{total_people} people"
+         		LogProg.info message
+            puts message
+          else
+          	message = "Not written"
+	          LogProg.info message
+	          puts message
+          end
+          
+end
 end
 
-def update_national_ids
+def self.update_national_ids
  nationalids = get_national_ids
  total_national_ids = nationalids.count
  counter = 0
@@ -93,23 +96,35 @@ def update_national_ids
 								"999" => "999", "998" => "998"]
     
  nationalids.each do |national_id| 
-   @npid = Npid.find_by_national_id(national_id.identifier)
-   unless @npid.blank?
-     @npid.site_code = national_id.site_id.upcase
-  	 @npid.assigned = national_id.person_id.blank? ? false : true
-     @npid.region = regions[site_code] rescue ""
-     @npid.save! 
+   @npid = Npid.by_national_id.key(national_id.identifier).first rescue nil
+   
+   if @npid.present?
+     if @npid.assigned == false
+		   @npid.site_code = national_id.site_id.upcase
+			 @npid.assigned = national_id.person_id.blank? ? false : true
+		   @npid.region = regions[site_code] rescue ""
+		   @npid.save! 
+		   counter +=1  
+			 message = "Updated >>>> #{counter} of #{total_national_ids} national_ids"
+			 LogProg.info message
+			 puts message	   
+		 else 
+       counter +=1  
+			 message = "Could not update: >>>> #{@npid.national_id}"
+			 LogProg.info message
+			 puts message	  
+   	 end
    end
-
-   counter +=1  
-   message = "Updated >>>> #{counter} of #{total_national_ids} national_ids"
-   LogProg.info message
-   puts message						 
+   					 
  end 
 end
 
 start = Time.now()
+
 migrate_people
+update_national_ids
+
+#update_national_ids
 #create_sites
 #migrate_people
 #migrate_footprints

@@ -64,10 +64,10 @@ def self.migrate_people
   
  personA = Person.find(national_id.identifier)
  #### 
- if personA.present?
- 	personA.destroy
- end
- personA = Person.find(national_id.identifier) 
+ #if personA.present?
+ #	personA.destroy
+ #end
+ #personA = Person.find(national_id.identifier) 
  #### 
  person_hash = Hash.new
  

@@ -68,6 +68,10 @@ class Person < CouchRest::Model::Base
                 
     view :by_old_identification_number
     
+    view :by_created_at
+    
+    view :by_updated_at
+    
     view :by_assigned_site,
          :map => "function(doc) {
                   if ((doc['type'] == 'Person') && (doc['assigned_site'] != null) && doc['assigned_site'] != '???') {

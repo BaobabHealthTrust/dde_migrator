@@ -1,11 +1,17 @@
-people = Person.by_created_at.startkey("2016-02-15 00:00:00").endkey("2016-02-16 23:59:59").each
+LogProg = Logger.new(Rails.root.join("log","migration_progress.log"))
 
+people = Person.by_created_at.startkey("2016-01-01 00:00:00").endkey("2016-02-16 23:59:59")
+
+counter = 0
 people.each do |person|
  next if person.patient.blank?
  next if person.patient.identifiers.blank?
- 
- person.patient.identifiers.each do |identifier|
-     legacy_id = identifier["Old Identification Number"]
+ old_id = person.patient.identifiers.first['Old Identification Number'] 
+ if old_id.present? && old_id.length == 6 && (NationalPatientId.valid?(NationalPatientId.to_decimal(old_id.upcase)) rescue false) && (old_id != old_id.upcase) 
+  puts old_id + " : " + (NationalPatientId.valid?(NationalPatientId.to_decimal(old_id.upcase)) rescue false).to_s + " : " + person.created_at.to_s	
+ 	counter +=1
+
+     legacy_id = old_id
      if legacy_id.present? && legacy_id.length == 6
         legacy_id = legacy_id.upcase
      		if NationalPatientId.valid?(NationalPatientId.to_decimal(legacy_id)) rescue false
@@ -19,6 +25,9 @@ people.each do |person|
      		  	    person.save
      		  	    npid.person_assigned = true
      		  	    npid.save
+     		  	    message = "Reclaimed " + person.national_id.to_s
+ 								LogProg.info message
+ 								puts message
      		  	    reclaimed_id = Npid.by_national_id.key(reclaim_id) rescue nil
      		  	    if reclaimed_id.present?
 		   		  	    reclaimed_id.person_assigned = false
@@ -58,6 +67,5 @@ people.each do |person|
      		  end
      		end
      end
- end
- 
 end
+puts counter.to_s	

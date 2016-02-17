@@ -1,4 +1,4 @@
-LogProg = Logger.new(Rails.root.join("log","migration_progress.log"))
+LogProg = Logger.new(Rails.root.join("log","reclaiming_progress.log"))
 
 people = Person.by_created_at.startkey("2016-01-01 00:00:00").endkey("2016-02-16 23:59:59")
 
@@ -11,17 +11,15 @@ people.each do |person|
   puts old_id + " : " + (NationalPatientId.valid?(NationalPatientId.to_decimal(old_id.upcase)) rescue false).to_s + " : " + person.created_at.to_s	
  	counter +=1
 
-     legacy_id = old_id
-     if legacy_id.present? && legacy_id.length == 6
-        legacy_id = legacy_id.upcase
-     		if NationalPatientId.valid?(NationalPatientId.to_decimal(legacy_id)) rescue false
-     		  person = Person.find(legacy_id)
-     		  if person.blank?
+     legacy_id = old_id.upcase
+ 
+     		  found_person = Person.find(legacy_id)
+     		  if found_person.blank?
      		  	npid = Npid.by_national_id.key(legacy_id).first rescue nil
      		  	if npid.present?
      		  	  if npid.person_assigned.blank? || npid.person_assigned == false
      		  	    reclaim_id = person.national_id
-     		  	    person.national_id = Npid.national_id
+     		  	    person.national_id = npid.national_id
      		  	    person.save
      		  	    npid.person_assigned = true
      		  	    npid.save
@@ -35,9 +33,10 @@ people.each do |person|
      		  	    end
      		  	    
      		  	    local_national_id = CvrPersonIdentifier.where("identifier = #{reclaim_id} AND identifier_type = 3")
-     		  	    local_legacy_id = CvrPersonIdentifier.where("identifier = #{legacy_id} AND identifier_type = 4")
+     		  	    local_legacy_id = CvrPersonIdentifier.where("identifier = #{legacy_id} AND identifier_type = 2")
      		  	    
-     		  	    if local_national_id.present? && local_legacy_id.present
+     		  	    if local_national_id.present? && local_legacy_id.present?
+     		  	    
      		  	       local_legacy_id.update_attributes(:void => true, 
      		  	       																	 :voided_by => 1, 
      		  	       																	 :date_voided => Date.today, 
@@ -54,18 +53,10 @@ people.each do |person|
      		  	       														:location_id => 700,
      		  	       														:creator => 1,
      		  	       														:date_created => Date.today)
-     		  	    else
+     		  	
      		  	    end
-     		  	    
-     		  	    
-     		  	    
-     		  	  else
      		  	  end
-     		  	else
      		  	end
-     		  else
      		  end
-     		end
-     end
 end
 puts counter.to_s	
